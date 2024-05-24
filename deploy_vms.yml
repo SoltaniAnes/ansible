@@ -1,0 +1,41 @@
+---
+- name: Deploy Virtual Machines to vCenter
+  hosts: localhost
+  vars:
+      vcenter_hostname: #add your vcenter_hostname here
+      vcenter_username: #add your vcenter_username here
+      vcenter_password: #add your vcenter_password here
+      vm_folder: #vm_folder
+      datacenter: #add your datacenter here
+      datastore:
+  module_defaults:
+   group/vmware:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: "no"
+  tasks:
+    - name: Include variables
+      ansible.builtin.include_vars:
+        file: ../vm_configs.yml
+
+    - name: Deploy VMs to vCenter
+      community.vmware.vmware_guest:
+       datacenter: "{{ datacenter }}"
+       datastore: "{{ item.datastore }}"
+       folder: "{{ vm_folder }}"
+       name: "{{ item.hostname }}"
+       template: "{{ item.template }}"
+       state: poweredon
+       hardware:
+         num_cpus: "{{ item.cpu }}"
+         memory_mb: "{{ item.memory_mb }}"
+       networks:
+         - name: #network name or vlan name
+           ip: "{{ item.ipaddress }}"
+           netmask: 255.255.255.0
+           gateway: "{{ item.gateway }}"
+           dns_servers:
+              - 8.8.8.8
+       wait_for_ip_address: no
+      loop: "{{ vms }}"
