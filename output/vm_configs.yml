@@ -1,0 +1,19 @@
+vms:
+- cpu: '2'
+  datastore: ssd-012421
+  dns: 8.8.8.8
+  gateway: 10.10.152.1
+  hostname: vmdetest1
+  ipaddress: 10.10.30.12
+  memory_mb: 4096
+  netmask: 255.255.255.0
+  template: TEMPLATE_RHEL-8.8_STG
+- cpu: '2'
+  datastore: ssd-012421
+  dns: 8.8.8.8
+  gateway: 10.10.30.11
+  hostname: vmdetest2
+  ipaddress: 10.10.152.22
+  memory_mb: 4096
+  netmask: 255.255.255.0
+  template: TEMPLATE_RHEL-8.8_STG
