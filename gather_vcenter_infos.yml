@@ -1,0 +1,49 @@
+---
+- name: Gather vCenter Information
+  hosts: localhost
+  gather_facts: no
+  vars:
+      vcenter_hostname: #Add hostname
+      vcenter_username: #Add Username
+      vcenter_password: #Add password
+  module_defaults:
+   group/vmware:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: "no"
+
+  tasks:
+    - name: Gather vCenter datacenters
+      community.vmware.vmware_datacenter_info:
+      register: vmware_datacenter_info
+
+    - name: Gather vCenter datastores
+      community.vmware.vmware_datastore_info:
+      register: vmware_datastore_info
+
+
+    - name: Convert datastore information into a dictionary
+      set_fact:
+         datastore_details: "{{ datastore_details | default({}) | combine({item.name: item.freeSpace}) }}"
+      loop: "{{ vmware_datastore_info.datastores }}"
+
+    - name: Collect datacenter names
+      set_fact:
+        datacenter_names: "{{ datacenter_names | default([]) + [item.name] }}"
+      loop: "{{ vmware_datacenter_info.datacenter_info }}"
+      when: vmware_datacenter_info.datacenter_info is defined
+
+    - name: Write datacenter names to file
+      copy:
+        content: "{{datacenter_names}}"
+        dest: "../output/datacentername.txt"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Write datastore details to file
+      copy:
+        content: "{{ datastore_details | to_nice_json }}"
+        dest: "../output/datastore_details.json"
+      delegate_to: localhost
+      run_once: true
